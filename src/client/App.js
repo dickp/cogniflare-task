@@ -1,22 +1,48 @@
 import React, { Component } from 'react';
 import './app.css';
-import ReactImage from './react.png';
 
 export default class App extends Component {
-  state = { username: null };
+  state = {
+    yaml: null
+  };
 
   componentDidMount() {
-    fetch('/api/getUsername')
+    fetch('/api/githubYAML?file=https://github.com/lightheadoc/tripleo/blob/master/net-config-noop.yaml')
       .then(res => res.json())
-      .then(user => this.setState({ username: user.username }));
+      .then(data => this.setState({
+        yaml: data
+      }));
+  }
+
+  renderYAML(yaml) {
+    return Object.keys(yaml).map((key) => {
+      if (!yaml[key]) {
+        return '';
+      }
+
+      if (typeof yaml[key] !== 'string') {
+        return (
+          <ul>{this.renderYAML(yaml[key])}</ul>
+        );
+      }
+
+      return (
+        <li>{`${key}: ${yaml[key]}`}</li>
+      );
+    });
   }
 
   render() {
-    const { username } = this.state;
+    const { yaml } = this.state;
+    const yamlElts = yaml
+      ? this.renderYAML(yaml)
+      : (
+        <h1>Loading.. please wait!</h1>
+      );
+
     return (
       <div>
-        {username ? <h1>{`Hello ${username}`}</h1> : <h1>Loading.. please wait!</h1>}
-        <img src={ReactImage} alt="react" />
+        <ul>{yamlElts}</ul>
       </div>
     );
   }
